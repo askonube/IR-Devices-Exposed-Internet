@@ -3,8 +3,7 @@
 
 ## Overview
 
-A threat hunt investigation was conducted regarding a sudden rapid decrease in network speed in a local area network (LAN) working environment. Coordinated and sophisticated attacks seem rather unlikely and may point to endpoint activity within the internal network. The primary tool here used was **Microsoft Defender for Endpoint (MDE)**, while leveraging Kusto Query Language (KQL) to query detailed threat hunting logs to identify large files downloaded, port scans, and numerous failed connection attempts. The findings below highlight the importance of implementing safeguards that will flag any suspicious behaviour from inside the network.
-
+This threat investigation highlights the reality of having devices exposed to the internet. In the modern world, internet connectivity has become a necessity for operations. However, this level of access to information and resources also leaves many hosts exposed to potential threats. Newer, updated, and more advanced devices are typically configured with security controls to mitigate common threats, whereas older devices often do not receive the same level of security configuration or updates. As a result, when these older devices are connected to the local network — especially if misconfigured or left unconfigured — they remain vulnerable and relatively defenceless against attacks.
 
 ---
 
@@ -17,8 +16,6 @@ During routine maintenance, the security team is tasked with investigating any V
 Currently, the traffic originating from the local area network (LAN) is allowed by all endpoints. Applications such as Powershell and others can be used freely by those in the working environment. There are suspicions that a user(s) may be downloading extremely large files or conducting port scans on the internal network. 
 
 ### Hypothesis:
-
-During the time the devices were unknowingly exposed to the internet, it’s possible that someone could have actually brute-force logged into some of them since some of the older devices do not have account lockout configured for excessive failed login attempts.
 
 Because VMs were placed in a shared services cluster, it's possible that these VMs were exposed to the internet. This would have given attackers a chance to attempt any brute-force login attacks as the older devices are not configured have their accounts locked after numerous, unsuccessful login attempts. If successful, these attacks would've given threat actors access to the shared environment, which would allow the threat actor to perform lateral movement across the network. 
 
@@ -103,7 +100,7 @@ DeviceLogonEvents
 ```
 ![image](https://github.com/user-attachments/assets/48468c7b-e8d7-4907-9d34-ee756869c5d5)
 
-There were zero (0) failed logons for the `labuser` account, indicating that a brute force attempt for this account didn't take place, and a 1-time password guess is unlikely.
+There were zero (0) failed logons for the `labuser` account, indicating that a brute force attempt for this account didn't take place, and a one-time password guess is unlikely.
 
 ```kql
 DeviceLogonEvents
@@ -114,7 +111,7 @@ DeviceLogonEvents
 ```
 ![image](https://github.com/user-attachments/assets/c9c7a14d-2733-4aa5-97dd-f3de82c86078)
 
-We checked all of the successful login IP addresses for the `labuser` account to see if any of them were unusual or from an unexpected location. All were normal. 
+We checked all of the successful login IP addresses for the `labuser` account to see if any of them were unusual or from an unexpected location. The IP address corresponded to their accurate location and was deemed safe. 
 
 ```kql
 DeviceLogonEvents
@@ -165,33 +162,40 @@ Though the device was exposed to the internet and clear brute force attempts too
 ## 5. Response
 
 ### Actions Taken
-- Immediately isolated the compromised VM from the network to prevent further scanning or lateral movement.
+- Immediately restrict internet exposure by limiting or removing public internet-facing configuration of the VM `windows-target-1` unless absolutely necessary.
 
-- Performed a thorough malware scan and forensic investigation to identify persistence mechanisms or additional malicious activity.
+- Implement firewall rules or network security groups (NSGs), if operating in a cloud environment, to restrict inbound traffic to only trusted IP addresses or networks.
+  
+- Implement strong, unique passwords and enable multi-factor authentication (MFA) for all user accounts.
 
-- Investigate why the user `ylavnu` launched the PowerShell script and tighten controls on privileged account access to prevent misuse.
+- Enable account lockout policies after a configurable number of failed login attempts to mitigate brute-force attacks.
 
-- Configured the firewall to block suspicious outbound or inbound traffic from the endpoint, especially unusual or sequential port connection attempts.
+- Continuously monitor login attempts and network traffic for abnormal patterns
 
-- Deployed IDS/IPS solutions that can detect and block port scanning and other reconnaissance activities in real-time.
+- Utilise intrusion detection/prevention systems (IDS/IPS) and endpoint protection tools to detect and block malicious activity
+
+- Apply the principle of least privilege for accounts and services to minimise potential damage from compromised credentials.
 
 ## 6. Improvement
 
 ### Prevention:
-- **Network Segmentation and Egress Controls**: Segment the internal network to limit lateral movement and reconnaissance scope. Implement network egress filtering to block unauthorized scanning and connection attempts within the LAN.
-- **PowerShell Restrictions**: Place PowerShell into Constrained Language Mode, reducing risk of executing malicious scripts.
-- **Real-Time Alerting**: Use Endpoint Detection and Response (EDR) tools and Intrusion Detection/Prevention Systems (IDS/IPS) to monitor for suspicious PowerShell executions and sequential port scanning activity. Configure alerts for unusual user activity, especially involving scripting or network scanning.
+- **Reduce Internet Exposure**: Limit or eliminate direct internet-facing access to critical VMs such as windows-target-1. Use VPNs, jump servers, or Just-in-Time (JIT) access to securely control remote connectivity.
+- **Implement Account Lockout Policies**: Configure account lockout thresholds to block accounts after a set number of failed login attempts.
+- **Enforce Strong Authentication**: Require complex passwords and enable multi-factor authentication (MFA) for all user accounts, especially those with remote access privileges.
+- **Least Privilege Access**: Apply the principle of least privilege to user accounts and service permissions to minimize risk if credentials are compromised.
 
 ### Threat Hunting:
-- Use KQL queries to detect PowerShell scripts related to port scanning or network reconnaissance, focusing on command lines invoking TCP connection attempts or scanning utilities.
-- Correlate  `DeviceNetworkEvents` and `DeviceProcessEvents` to identify processes (like portscan.ps1) that precede or coincide with sequential failed connection attempts, indicating scanning behavior.
-- Regularly audit changes to user privileges especially unauthorised privilege escalations or scripting capabilities by users like `ylavnu`.
-- Establish normal user and network behavior baselines to detect deviations such as unusual PowerShell usage or network scanning patterns originating from endpoints.
+-  Continuously analyze authentication logs for patterns of failed login attempts from external IPs to detect brute-force activity early.
+- Investigate accounts with multiple failed attempts followed by successful logins to identify potential credential compromise.
+- Regularly review and inventory VMs exposed to the internet. Prioritize threat hunting on these assets due to higher risk exposure.
+- Hunt for unusual remote service usage or authentication events within the shared services cluster that may indicate lateral movement attempts.
+- Integrate external threat intelligence feeds to identify known malicious IP addresses attempting access and proactively block them.
+- Establish normal login and network behavior baselines for critical accounts like labuser to quickly spot anomalies.
 
 ---
 
 ## Conclusion
 
-Port scanning is one of the most common techniques used to assess a target’s security posture. Sequential and chronological scanning patterns are relatively straightforward to detect. Maintaining continuous monitoring through firewalls and IDS/IPS solutions is critical to prevent threat actors from gaining a foothold. Fortunately, in this case, the connection attempts were unsuccessful, and the opportunity to exploit any open ports was effectively thwarted.
+Brute-force attacks will continue to be a mainstay in the modern cyber threat landscape. The vast trove of exposed credentials and stolen password lists will arm threat actors for the foreseeable future. Implementing security measures such as account lockout policies, multi-factor authentication, complex passwords, and the principle of least privilege are currently considered the absolute baseline standards for protecting against threat actors. Adopting basic security hygiene is essential to prevent businesses of all sizes from falling victim to common, yet effective, attacks.
 
 
