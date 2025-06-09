@@ -135,35 +135,32 @@ Though the device was exposed to the internet and clear brute force attempts too
 
 ## 4. Investigation
 
-**Suspicious Activity Origin**: An endpoint within the 10.0.0.0/16 network, specifically the Windows VM `win-vm-mde` (IP: 10.0.0.137), initiated unusual activity causing a significant network slowdown, as observed by the networking team on June 09, 2025.
+**Suspicious Activity Origin**: The VM `windows-target-1` was exposed to the public internet for several days, resulting in multiple failed login attempts from external IP addresses, indicating potential brute-force attack activity against this internet-facing host.
 
-**Potential Reconnaissance**: The sequential scanning of IP addresses within the 10.0.0.0/16 network indicates an attempt to gather information about the internal network, possibly as a precursor to further attacks or to map the environment (T1595.001: Scanning IP Blocks).
+**Potential Brute-Froce Login Attempts**: Numerous failed login attempts from external IPs were observed targeting the exposed VM, consistent with brute-force techniques aimed at gaining unauthorized access (T1110: Brute Force). Despite these attempts, no successful brute-force login was detected for the legitimate account `labuser`.
 
-**Discovery via Port Scanning**: The device conducted a port scan, systematically targeting sequential ports on other hosts within the LAN, as detected by numerous failed connection attempts in Microsoft Defender for Endpoint logs (T1046: Network Service Discovery), likely to identify vulnerable systems or services.
+**Risk of Initial Access and Lateral Movement**: If any brute-force attempts had succeeded, attackers could have gained initial access to the shared services environment, which includes critical infrastructure such as DNS, Domain Services, and DHCP. This access could facilitate lateral movement within the network to expand control (T1021: Remote Services).
 
-**PowerShell Execution**: A PowerShell script named `portscan.ps1` was executed on `win-vm-mde` at `2025-06-08T16:29:40.1687498Z`, just before the port scan began, leveraging PowerShell’s capabilities to automate the scanning process (T1059.001: PowerShell).
-
-**Unexpected User Account Usage**: The `portscan.ps1` script was launched by the user `ylavnu`, an action that was unexpected and not authorized by administrators, suggesting possible misuse of user credentials or compromised account
-    
+**Legitimate Account Behaviour**: The account "labuser" successfully logged in twice via network logons in the past 30 days, with no failed attempts and all logins originating from expected IP addresses, confirming no malicious activity or compromise associated with this account.
     
 ### MITRE ATT&CK TTPs
 
-1. **Tactic: Reconnaissance (TA0043)** 
+1. **Tactic: Initial Access (TA0001)** 
     
-    - **Technique: Scanning IP Blocks (T1595.001)** Adversaries scan IP blocks to identify targets, often as a precursor to attacks. The scans were done on targeted hosts within the 10.0.0.0/16 network, as seen in failed connection attempts.
- 
-2. **Tactic: Execution (TA0002)** 
+    - **Technique: Brute Force (T1110)** Adversaries attempt to gain access by guessing credentials, often targeting systems without account lockout mechanisms. Logs from `DeviceLogonEvents` show multiple failed login attempts (ActionType == "LogonFailed") from external IPs (e.g., 45.135.232.96, 185.39.19.71) targeting "windows-target-1," consistent with brute-force behavior.
+
+2. **Tactic: Credential Access (TA0006)** 
     
-    - **Technique: PowerShell (T1059.001)** Adversaries use PowerShell to execute commands or scripts, often for malicious purposes, due to its legitimate use and powerful capabilities. The KQL query on `DeviceProcessEvents` identified `portscan.ps1`, a PowerShell script, launched at `2025-06-08T16:29:40.1687498Z`, just before the port scan.
+    - **Technique: Brute Force (T1110)** The repeated failed login attempts indicate attempts to acquire valid credentials through brute force.
         
         
-3. **Tactic: Privilege Escalation (TA0004)** 
+3. **Tactic: Initial Access (TA0001)** 
     
-    - **Technique: Valid Accounts (T1078)**  Adversaries use legitimate credentials (e.g., compromised or misused) to execute actions. The `portscan.ps1` script was executed by the user `ylavnu`, which was unexpected and not authorised by administrators.
+    - **Technique: Exploit Public-Facing Application (T1190)** Adversaries may exploit vulnerabilities in internet-facing applications to gain initial access. The VM "windows-target-1," hosting critical services (DNS, DHCP, Domain Services), was exposed to the internet (IsInternetFacing == true until 2025-06-09T11:06:17.2711518Z), making it a potential target for exploitation. While no direct evidence of application-specific exploits (e.g., CVEs or anomalous service behavior) was found in the logs, the internet exposure of these services increases the risk of such attacks, particularly if unpatched or misconfigured.
   
-4. **Tactic: Discovery (TA0007)** 
+4. **Tactic: Lateral Movement (TA0008)** 
     
-    - **Technique: Network Service Discovery (T1046)** Adversaries use port scanning to identify open ports and services on target hosts within the network. The KQL query on `DeviceNetworkEvents` revealed that the failed connection attempts from `10.0.0.137` targeted ports in a sequential and chronological pattern, focusing on commonly used ports. This behavior strongly indicates a methodical port scan conducted around `2025-06-08T16:30:19.4145359Z`.
+    - **Technique: Remote Services (T1021)** Successful compromise of the exposed VM could enable attackers to move laterally through the shared services cluster.
 
 ---
 
