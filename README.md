@@ -20,7 +20,7 @@ Currently, the traffic originating from the local area network (LAN) is allowed 
 
 During the time the devices were unknowingly exposed to the internet, it’s possible that someone could have actually brute-force logged into some of them since some of the older devices do not have account lockout configured for excessive failed login attempts.
 
-Because VMs were placed in a shared services cluster, it's possible that these VMs were exposed to the internet. This would have given attackers a chance to attempt any brute-force login attacks because the older devices are not configured have their accounts locked after numerous, unsuccessful login attempts. If successful, these attacks would've given threat actors access to the shared environment, which would allow the threat actor to perform lateral movement across the network. 
+Because VMs were placed in a shared services cluster, it's possible that these VMs were exposed to the internet. This would have given attackers a chance to attempt any brute-force login attacks as the older devices are not configured have their accounts locked after numerous, unsuccessful login attempts. If successful, these attacks would've given threat actors access to the shared environment, which would allow the threat actor to perform lateral movement across the network. 
 
 ## 2. Data Collection
   
@@ -129,8 +129,6 @@ DeviceLogonEvents
 
 
 Though the device was exposed to the internet and clear brute force attempts took place, there's no evidence of any brute force success or unauthorised access from the legitimate account `labuser`. 
-
-
 
 
 ## 4. Investigation
