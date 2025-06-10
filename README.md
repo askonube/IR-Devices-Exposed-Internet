@@ -162,19 +162,19 @@ Though the device was exposed to the internet and clear brute force attempts too
 ## 5. Response
 
 ### Actions Taken
-- Immediately restrict internet exposure by limiting or removing public internet-facing configuration of the VM `windows-target-1` unless absolutely necessary.
+- Immediately restricted internet exposure by limiting or removing public internet-facing configuration of the VM `windows-target-1` unless absolutely necessary.
 
-- Implement firewall rules or network security groups (NSGs), if operating in a cloud environment, to restrict inbound traffic to only trusted IP addresses or networks.
+- Implemented firewall rules or network security groups (NSGs), if operating in a cloud environment, to restrict inbound traffic to only trusted IP addresses or networks.
   
-- Implement strong, unique passwords and enable multi-factor authentication (MFA) for all user accounts.
+- Implemented strong, unique passwords and enable multi-factor authentication (MFA) for all user accounts.
 
-- Enable account lockout policies after a configurable number of failed login attempts to mitigate brute-force attacks.
+- Enabled account lockout policies after a configurable number of failed login attempts to mitigate brute-force attacks.
 
 - Continuously monitor login attempts and network traffic for abnormal patterns
 
-- Utilise intrusion detection/prevention systems (IDS/IPS) and endpoint protection tools to detect and block malicious activity
+- Utilised intrusion detection/prevention systems (IDS/IPS) and endpoint protection tools to detect and block malicious activity
 
-- Apply the principle of least privilege for accounts and services to minimise potential damage from compromised credentials.
+- Applied the principle of least privilege for accounts and services to minimise potential damage from compromised credentials.
 
 ## 6. Improvement
 
