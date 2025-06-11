@@ -130,13 +130,11 @@ Though the device was exposed to the internet and clear brute force attempts too
 
 ## 4. Investigation
 
-**Suspicious Activity Origin**: The VM `windows-target-1` was exposed to the public internet for several days, resulting in multiple failed login attempts from external IP addresses, indicating potential brute-force attack activity against this internet-facing host.
+The virtual machine `windows-target-1` was exposed to the public internet for several days, during which multiple failed login attempts were recorded from various external IP addresses. These attempts are consistent with brute-force attack activity aimed at gaining unauthorized access to the internet-facing host.
 
-**Potential Brute-Froce Login Attempts**: Numerous failed login attempts from external IPs were observed targeting the exposed VM, consistent with brute-force techniques aimed at gaining unauthorized access (T1110: Brute Force). Despite these attempts, no successful brute-force login was detected for the legitimate account `labuser`.
+Despite the volume of failed logins, there was no evidence of successful brute-force access to the legitimate user account `labuser`. This account showed only two successful network logins in the past 30 days, both originating from expected IP addresses, with no failed login attempts detected, indicating no compromise of this account.
 
-**Risk of Initial Access and Lateral Movement**: If any brute-force attempts had succeeded, attackers could have gained initial access to the shared services environment, which includes critical infrastructure such as DNS, Domain Services, and DHCP. This access could facilitate lateral movement within the network to expand control (T1021: Remote Services).
-
-**Legitimate Account Behaviour**: The account "labuser" successfully logged in twice via network logons in the past 30 days, with no failed attempts and all logins originating from expected IP addresses, confirming no malicious activity or compromise associated with this account.
+The exposure of this VM, which hosts critical shared services such as DNS, Domain Services, and DHCP, presents a significant risk. Had any of the brute-force attempts succeeded, attackers could have gained initial access to the environment and potentially moved laterally within the network to expand their control.
     
 ### MITRE ATT&CK TTPs
 
@@ -147,7 +145,6 @@ Though the device was exposed to the internet and clear brute force attempts too
 2. **Tactic: Credential Access (TA0006)** 
     
     - **Technique: Brute Force (T1110)** The repeated failed login attempts indicate attempts to acquire valid credentials through brute force.
-        
         
 3. **Tactic: Initial Access (TA0001)** 
     
